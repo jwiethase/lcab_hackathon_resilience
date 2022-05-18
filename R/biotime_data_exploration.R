@@ -12,8 +12,6 @@ bt_meta <- janitor::clean_names(bt_meta)
 summary(bt_f)
 
 # every species for every plot - binary count for each year
-
-<<<<<<< HEAD
 bt_s <- bt_f %>% select(c('year','plot','genus')) %>% distinct()
 
 
@@ -26,12 +24,6 @@ length(unique(bt_s$genus))
 #                       presence = rep(NA, length(unique(bt_s$year))*length(unique(bt_s$plot))*length(unique(bt_s$genus)) ))
 
 
-
-
-
-
-
-=======
 bt_f_summary <- bt_f %>%
   group_by(plot, year, genus) %>%
   tally()
@@ -46,6 +38,6 @@ bt_f_s_50 <- bt_f_summary %>%
 bt_f_s_50 %>%
   group_by(plot) %>%
   tally()
->>>>>>> f1ca3b3e80dec00c38e73e83179fa86214451740
+
 
 
