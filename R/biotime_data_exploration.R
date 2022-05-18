@@ -154,6 +154,48 @@ class(world)
 maps::map('world')
 points(gen_loc_sep$long, gen_loc_sep$lat, cex = 0.5, pch = 16, col = 'blue')
 
+####### everything everything ########
+bt_f
+bt_meta
+
+bt_f$loc <- paste0(round(bt_f$latitude,2), '_', round(bt_f$longitude,2))
+bt_f_s <- bt_f[,c('study_id','year','genus','loc')]
+
+bt_f_summary <- bt_f_s %>%
+  group_by(loc, year, genus) %>%
+  tally()
+
+bt_f_summary <- bt_f_summary%>%
+  group_by(loc, genus) %>%
+  tally()
+
+gen_loc <- bt_f_summary %>%
+  group_by(loc) %>%
+  tally()
+gen_loc_sep <- separate(gen_loc, loc, into = c('lat','long'), sep = '_', remove = F)
+
+plot(gen_loc_sep$long ~ gen_loc_sep$lat, las = 1, pch = 16, col = rgb(0,0,1,0.2),
+     xlab = 'latitude', ylab = 'longitude')
+abline(lty = 2, v = 0, h = 0)
+text('equator', x = 20, y = 5)
+text('Greenwich', x = -3, y = 50, srt = 90)
+
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+world <- ne_countries(scale = 'medium', returnclass = 'sf')
+class(world)
+
+maps::map('world')
+points(gen_loc_sep$long, gen_loc_sep$lat, cex = 0.5, pch = 16, col = 'blue')
+
+
+
+
+
+
+
 ####### birds only #####
 bt_f <- read_csv("Data/biotime_full.csv") %>% janitor::clean_names()
 bt_meta <- read_csv("Data/biotime_metadata.csv") %>% janitor::clean_names()
@@ -196,54 +238,38 @@ maps::map('world')
 points(gen_loc10_sep$long, gen_loc10_sep$lat, cex = 0.5, pch = 16, col = 'blue')
 points(gen_loc20_sep$long, gen_loc20_sep$lat, cex = 0.5, pch = 16, col = 'red')
 
+######
+bt_ta_s_10 <- separate(bt_ta_s_10, loc, into = c('lat','lon'), sep = '_', remove = F)
 
-### data exploration of full data
-library(tidyverse)
+length(unique(bt_ta_s_10$genus))
+length(unique(bt_ta_s_10$loc))
 
-bt_f <- read_csv("Data/biotime_full.csv") %>% janitor::clean_names()
-bt_meta <- read_csv("Data/biotime_metadata.csv") %>% janitor::clean_names()
+birds$loc <- paste0(round(birds$latitude,2),'_',round(birds$longitude,2))
+sites <- birds[birds$loc %in% bt_ta_s_10$loc,]
 
-####### everything everything ########
-bt_f
-bt_meta
-
-bt_f$loc <- paste0(round(bt_f$latitude,2), '_', round(bt_f$longitude,2))
-bt_f_s <- bt_f[,c('study_id','year','genus','loc')]
-
-bt_f_summary <- bt_f_s %>%
-  group_by(loc, year, genus) %>%
+birds_gen <- birds %>%
+  group_by(genus, loc, year) %>%
   tally()
 
-bt_f_summary <- bt_f_summary%>%
+birds_gen <- birds_gen %>%
   group_by(loc, genus) %>%
+  mutate(mean_per_year = mean(n)) %>%
   tally()
 
-gen_loc <- bt_f_summary %>%
+birds_gen_2 <- birds_gen %>%
   group_by(loc) %>%
   tally()
-gen_loc_sep <- separate(gen_loc, loc, into = c('lat','long'), sep = '_', remove = F)
 
-plot(gen_loc_sep$long ~ gen_loc_sep$lat, las = 1, pch = 16, col = rgb(0,0,1,0.2),
-     xlab = 'latitude', ylab = 'longitude')
-abline(lty = 2, v = 0, h = 0)
-text('equator', x = 20, y = 5)
-text('Greenwich', x = -3, y = 50, srt = 90)
+example_site <- "39.08_-96.58"
 
-library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
+birds_sample <- birds %>%
+  filter(loc == example_site)
 
-world <- ne_countries(scale = 'medium', returnclass = 'sf')
-class(world)
+ggplot(birds_sample, aes(x=year, y=sum_allrawdata_abundance, fill=genus)) +
+  geom_col()+
+  theme(legend.position=("none"))
 
-#ggplot()+
-#  geom_sf(data = world)+
-#  coord_sf(ylim = c(-40, 80), xlim = c(-150,150))+
-#  geom_point(data = gen_loc_sep, aes(y = lat, x = long))
-
-maps::map('world')
-points(gen_loc_sep$long, gen_loc_sep$lat, cex = 0.5, pch = 16, col = 'blue')
-
+length(unique(birds$study_id))
 
 
 
