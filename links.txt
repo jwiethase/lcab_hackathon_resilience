@@ -1,0 +1,8 @@
+# Earth Egnine repository:
+https://code.earthengine.google.com/?accept_repo=users/jhw538/lcab_hackathon_2022
+
+# Git slides
+https://docs.google.com/presentation/d/1cI3zsMWrTg4le6ao0kaFbdGSHWpNg0jy8X_e3KX9RRM/edit#slide=id.g12611609ef3_0_21
+
+# Google Docs
+https://docs.google.com/document/d/1g_tOoG_LF_plHzOwY4iqVhrL9yljMetZyYpv_wFhBaA/edit
