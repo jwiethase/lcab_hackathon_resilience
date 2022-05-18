@@ -1,4 +1,4 @@
-#Earth Egnine repository:
+# Earth Egnine repository:
 https://code.earthengine.google.com/?accept_repo=users/jhw538/lcab_hackathon_2022
 
 # Git slides
