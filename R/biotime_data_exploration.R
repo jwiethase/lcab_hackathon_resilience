@@ -1,8 +1,11 @@
 ### data exploration of full data
 library(tidyverse)
 
-bt_f <- read_csv("Data/biotime_full.csv") %>% janitor::clean_names()
-bt_meta <- read_csv("Data/biotime_metadata.csv") %>% janitor::clean_names()
+bt_f <- read_csv("Data/biotime_full.csv") %>% 
+  janitor::clean_names()
+
+bt_meta <- read_csv("Data/biotime_metadata.csv") %>% 
+  janitor::clean_names()
 
 ####### old stuff ########
 summary(bt_f)
@@ -95,7 +98,9 @@ for(i in 2:10){
 }
 
 ####### start over #########
-terr_animals <- bt_meta[bt_meta$realm == 'Terrestrial' & bt_meta$taxa != 'Fungi' & bt_meta$taxa != 'Terrestrial plants',]
+terr_animals <- bt_meta[bt_meta$realm == 'Terrestrial' & 
+                          bt_meta$taxa != 'Fungi' & 
+                          bt_meta$taxa != 'Terrestrial plants',]
 
 bt_ta <- bt_f[bt_f$study_id %in% terr_animals$study_id,]
 rm(bt_f, bt_meta)
@@ -159,17 +164,68 @@ bt_f
 bt_meta
 
 bt_f$loc <- paste0(round(bt_f$latitude,2), '_', round(bt_f$longitude,2))
-bt_f_s <- bt_f[,c('study_id','year','genus','loc')]
+
+bt_f <- bt_f %>%
+  filter(!(year<1999))
+
+terr_animals <- bt_meta[bt_meta$realm == 'Terrestrial' & 
+                          bt_meta$taxa != 'Fungi' & 
+                          bt_meta$taxa != 'Terrestrial plants',]
+
+bt_f_s <- bt_f %>%
+  group_by(study_id,year,loc) %>%
+  tally()
+
+bt_f_s <- bt_f_s[ with(bt_f_s, order(loc,year)),]
+
+bt_f_s$id <- seq(1:length(bt_f_s$loc))
+
+long_list <- aggregate(bt_f_s$year,
+                       by= list(loc=bt_f_s$loc),
+                       FUN=function(x){
+                         x<- sort(x)
+                         timediff <- x[NROW(x)] - x[1]
+                         return(c(time = timediff, 
+                                     end_year = x[NROW(x)], 
+                                     start_year = x[1]))
+                       })
+
+str(long_list)
+
+long_df <- data.frame(loc = long_list$loc,
+                      time = long_list$x[,'time'],
+                      end_year = long_list$x[,'end_year'],
+                      start_year = long_list$x[,'start_year'])
+
+long_df <- long_df %>%
+  filter(time >= 3)
+
+long_df <- separate(long_df, loc, into = c('lat','long'), sep = '_', remove = F)
+
+write_csv(long_df, file="location_long_list.csv")
+
+
+## [1] TRUE
 
 bt_f_summary <- bt_f_s %>%
-  group_by(loc, year, genus) %>%
+  group_by(study_id, loc, year, genus) %>%
   tally()
 
 bt_f_summary <- bt_f_summary%>%
-  group_by(loc, genus) %>%
+  group_by(study_id, loc, genus) %>%
   tally()
 
-gen_loc <- bt_f_summary %>%
+bt_f_summary <- bt_f_summary %>%
+  filter(n >= 3)
+
+bt_f <- bt_f %>%
+  filter(study_id %in% bt_f_summary$study_id) %>%
+  filter(study_id %in% terr_animals$study_id)
+
+
+
+
+gen_loc <- bt_f %>%
   group_by(loc) %>%
   tally()
 gen_loc_sep <- separate(gen_loc, loc, into = c('lat','long'), sep = '_', remove = F)
@@ -215,7 +271,7 @@ bt_ta_summary <- bt_ta_summary%>%
   group_by(loc, genus) %>%
   tally()
 
-bt_ta_s_10 <- bt_ta_summary %>% filter(n >= 10)
+bt_ta_s_10 <- bt_ta_summary %>% filter(n >= 3)
 gen_loc_10 <- bt_ta_s_10 %>%
   group_by(loc) %>%
   tally()
